@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+
+  books Book[]
+
+  createdChallenges Challenge[] @relation("ChallengeCreator")
+  joinedChallenges  Challenge[] @relation("ChallengeFriend")
+}
+
+model Book {
+  id         Int     @id @default(autoincrement())
+  title      String
+  author     String
+  coverUrl   String?
+  genre      String?
+  totalPages Int?
+
+  status      String  @default("want_to_read")
+  currentPage Int     @default(0)
+  rating      Int?
+  notes       String?
+
+  startedAt  DateTime?
+  finishedAt DateTime?
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  challenges Challenge[]
+}
+
+model Challenge {
+  id     Int    @id @default(autoincrement())
+  title  String
+  type   String
+  target Int
+
+  creatorProgress Int @default(0)
+  friendProgress  Int @default(0)
+
+  deadline DateTime?
+  status   String    @default("active")
+
+  creatorId Int
+  creator   User @relation("ChallengeCreator", fields: [creatorId], references: [id])
+
+  friendId Int
+  friend   User @relation("ChallengeFriend", fields: [friendId], references: [id])
+
+  bookId Int?
+  book   Book? @relation(fields: [bookId], references: [id])
+}
