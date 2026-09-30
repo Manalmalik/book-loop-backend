@@ -12,28 +12,63 @@ datasource db {
   provider = "postgresql"
 }
 
+enum ReadingStatus {
+  WANT_TO_READ
+  READING
+  FINISHED
+}
+
+enum ChallengeStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  COMPLETED
+}
+
 model User {
   id       Int    @id @default(autoincrement())
   name     String
   email    String @unique
   password String
+  role     String @default("user")
 
-  books Book[]
+  // Personal library
+  userBooks UserBook[]
 
-  createdChallenges Challenge[] @relation("ChallengeCreator")
-  joinedChallenges  Challenge[] @relation("ChallengeFriend")
+  // Challenges
+  sentChallenges     Challenge[] @relation("Challenger")
+  receivedChallenges Challenge[] @relation("ChallengedUser")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Book {
-  id         Int     @id @default(autoincrement())
-  title      String
-  author     String
-  coverUrl   String?
-  genre      String?
-  totalPages Int?
+  id            Int     @id @default(autoincrement())
+  title         String
+  author        String
+  description   String?
+  coverUrl      String?
+  genre         String?
+  totalPages    Int?
+  isbn          String? @unique
+  publishedYear Int?
 
-  status      String  @default("want_to_read")
-  currentPage Int     @default(0)
+  // Users who added this book to their personal library
+  userBooks UserBook[]
+
+  // Challenges involving this book
+  challenges Challenge[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserBook {
+  id Int @id @default(autoincrement())
+
+  status      ReadingStatus @default(WANT_TO_READ)
+  currentPage Int           @default(0)
   rating      Int?
   notes       String?
 
@@ -41,29 +76,34 @@ model Book {
   finishedAt DateTime?
 
   userId Int
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  challenges Challenge[]
+  bookId Int
+  book   Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, bookId])
 }
 
 model Challenge {
-  id     Int    @id @default(autoincrement())
-  title  String
-  type   String
-  target Int
+  id Int @id @default(autoincrement())
 
-  creatorProgress Int @default(0)
-  friendProgress  Int @default(0)
-
+  title    String?
+  message  String?
+  status   ChallengeStatus @default(PENDING)
   deadline DateTime?
-  status   String    @default("active")
 
-  creatorId Int
-  creator   User @relation("ChallengeCreator", fields: [creatorId], references: [id])
+  challengerId Int
+  challenger   User @relation("Challenger", fields: [challengerId], references: [id], onDelete: Cascade)
 
-  friendId Int
-  friend   User @relation("ChallengeFriend", fields: [friendId], references: [id])
+  challengedUserId Int
+  challengedUser   User @relation("ChallengedUser", fields: [challengedUserId], references: [id], onDelete: Cascade)
 
-  bookId Int?
-  book   Book? @relation(fields: [bookId], references: [id])
+  bookId Int
+  book   Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
