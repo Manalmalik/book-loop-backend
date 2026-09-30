@@ -18,6 +18,11 @@ Thumbs.db:encryptable
 ehthumbs.db
 *.lnk
 
+# Build output
+dist/
+
+# Generated Prisma Client
+src/generated/prisma/
 
 # VS Code
 .vscode/*
