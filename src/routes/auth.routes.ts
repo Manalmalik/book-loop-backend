@@ -10,10 +10,6 @@ const router = Router();
 
 const saltRounds = 10;
 
-interface AuthenticatedRequest extends Request {
-  payload?: unknown;
-}
-
 // POST /auth/signup
 router.post(
   "/signup",
@@ -139,7 +135,7 @@ router.post(
 router.get(
   "/verify",
   isAuthenticated,
-  (req: AuthenticatedRequest, res: Response) => {
+  (req: Request, res: Response) => {
     return res.status(200).json(req.payload);
   }
 );

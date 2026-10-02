@@ -7,6 +7,7 @@ import errorHandling from "./error-handling";
 import indexRoutes from "./routes/index.routes";
 import authRoutes from "./routes/auth.routes";
 import bookRoutes from "./routes/book.routes"
+import userBookRoutes from "./routes/userBook.routes"
 
 const app = express();
 
@@ -17,6 +18,7 @@ config(app);
 app.use("/api", indexRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api", bookRoutes)
+app.use("/api/auth", userBookRoutes)
 
 // Register error handlers last
 errorHandling(app);
