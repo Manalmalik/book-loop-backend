@@ -92,7 +92,7 @@ router.post(
           data: {
             userId,
             bookId,
-            status: "READING",
+            status:req.body.status,
             currentPage: 0,
             startedAt: new Date(),
           },
@@ -204,5 +204,41 @@ router.patch("/user-books/:bookId", isAuthenticated, async (req, res, next) => {
     next(error);
   }
 });
+
+router.delete("/user-books/:bookId", isAuthenticated, async (req, res, next) => {
+  try {
+    const bookId = Number(req.params.bookId);
+    const payload = (
+      req as Request & {
+        payload?: { id: number; email: string; name: string };
+      }
+    ).payload;
+
+    if (!payload) {
+      return res.status(401).json({ errorMessage: "Authentication required" });
+    }
+
+    if (!Number.isInteger(bookId) || bookId <= 0) {
+      return res.status(400).json({ errorMessage: "A valid book ID is required" });
+    }
+
+    const result = await prisma.userBook.deleteMany({
+      where: {
+        userId: payload.id,
+        bookId,
+      },
+    });
+
+    if (result.count === 0) {
+      return res.status(404).json({ errorMessage: "Book is not in this user's library" });
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 
 export default router
